@@ -1,9 +1,10 @@
-import { View, Text, StyleSheet,TextInput, TouchableOpacity} from 'react-native'
+import { View, Text, StyleSheet,TextInput, TouchableOpacity, Alert, ToastAndroid} from 'react-native'
 import React, { useState } from 'react'
 import Colors from '../../constant/Colors'
-import { useRouter,router } from 'expo-router'
-import { auth } from '../../config/firebase'
+import { useRouter } from 'expo-router'
+import { auth } from '../../config/firebase.jsx'
 import { signInWithEmailAndPassword } from 'firebase/auth'
+import { setLocalStorgae } from '../../service/Storage.jsx'
 
 export default function signIn() {
     const router = useRouter();
@@ -12,20 +13,22 @@ export default function signIn() {
 
     const onSignInClick=()=>{
         if(!email || !password){
-            Alert.alert('enter Email and Password');
+            Alert.alert('Enter Email and Password');
             return;
         }
         signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
+        .then(async(userCredential) => {
             // Signed in 
             const user = userCredential.user;
-            router.replace('(tabs)')
+            await setLocalStorgae('userDetails',user);
+            router.replace('(tabs)');
             // ...
         })
         .catch((error) => {
             const errorCode = error.code;
             const errorMessage = error.message;
-            if(errorCode=='auth/invalid-credential'){
+            if(errorCode== 'auth/invalid-credential'){
+                ToastAndroid.show('Invalid Email or Password',ToastAndroid.BOTTOM);
                 Alert.alert('Invalid Email or Password')
             }
         });
